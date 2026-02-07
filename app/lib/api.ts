@@ -28,8 +28,8 @@ export async function apiRequest(
     method,
     data: body,
   });
-
-  return res.data;
+ 
+  return res;
 }
 
 export default api;

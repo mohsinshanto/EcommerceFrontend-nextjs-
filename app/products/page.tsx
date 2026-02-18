@@ -32,18 +32,34 @@ export default function Products() {
     fetchProducts();
   }, []);
 
-  if (loading) {
-    return <p>Loading products...</p>;
-  }
+  const addToCart = async (productId: number) => {
+    try {
+      await apiRequest('/cart', 'POST', {
+        product_id: productId,
+        quantity: 1,
+      });
+      alert('Added to cart');
+    } catch {
+      alert('Failed to add to cart');
+    }
+  };
 
-  if (error) {
-    return <p style={{ color: 'red' }}>{error}</p>;
-  }
+  if (loading) return <p>Loading products...</p>;
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
   return (
     <ul>
       {products.map((p) => (
-        <li key={p.id}>{p.name}</li>
+        <li key={p.id}>
+          <h3>{p.name}</h3>
+          <p>{p.description}</p>
+          <p>Price: {p.price} BDT</p>
+          <p>Stock: {p.stock}</p>
+
+          <button disabled={p.stock === 0} onClick={() => addToCart(p.id)}>
+            Add to Cart
+          </button>
+        </li>
       ))}
     </ul>
   );

@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { apiRequest } from '../lib/api';
+import { useRouter } from 'next/navigation';
 
 type Product = {
   id: number;
@@ -14,6 +16,7 @@ type Product = {
 };
 
 export default function Products() {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -111,6 +114,7 @@ export default function Products() {
           onClick={() => {
             setCategory('');
             setPage(1);
+            setAppliedSearch('');
           }}
           style={{
             padding: '5px 20px',
@@ -122,6 +126,7 @@ export default function Products() {
           onClick={() => {
             setCategory('mobile');
             setPage(1);
+            setAppliedSearch('');
           }}
           style={{
             padding: '5px 20px',
@@ -133,6 +138,7 @@ export default function Products() {
           onClick={() => {
             setCategory('laptop');
             setPage(1);
+            setAppliedSearch('');
           }}
           style={{
             padding: '5px 20px',
@@ -144,6 +150,7 @@ export default function Products() {
           onClick={() => {
             setCategory('audio');
             setPage(1);
+            setAppliedSearch('');
           }}
           style={{
             padding: '5px 20px',
@@ -155,6 +162,7 @@ export default function Products() {
           onClick={() => {
             setCategory('accessories');
             setPage(1);
+            setAppliedSearch('');
           }}
           style={{
             padding: '5px 20px',
@@ -176,6 +184,7 @@ export default function Products() {
         {products.map((p) => (
           <div
             key={p.id}
+            onClick={() => router.push(`/products/${p.id}`)} // ✅ navigation
             style={{
               border: '1px solid #ddd',
               borderRadius: '8px',
@@ -186,15 +195,16 @@ export default function Products() {
               flexDirection: 'column',
               alignItems: 'center',
               textAlign: 'center',
+              cursor: 'pointer', // ✅ shows clickable
             }}
           >
             <h3>{p.name}</h3>
 
-            <img
-              src={`http://localhost:8080${p.image_url}`}
+            <Image
+              src={p.image_url}
               alt={p.name}
-              height={150}
               width={200}
+              height={150}
               style={{ objectFit: 'cover', borderRadius: '5px' }}
             />
 
@@ -202,12 +212,15 @@ export default function Products() {
             <p>
               <b>Category:</b> {p.category}
             </p>
-            <p>Price: {p.price} BDT</p>
+            <p>Price: ${p.price.toFixed(2)}</p>
             <p>Stock: {p.stock}</p>
 
             <button
               disabled={p.stock === 0}
-              onClick={() => addToCart(p.id)}
+              onClick={(e) => {
+                e.stopPropagation(); // ✅ VERY IMPORTANT
+                addToCart(p.id);
+              }}
               style={{
                 marginTop: 'auto',
                 padding: '8px 15px',

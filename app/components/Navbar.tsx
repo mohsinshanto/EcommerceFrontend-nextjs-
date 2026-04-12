@@ -1,14 +1,18 @@
+//Navbar.tsx
 'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const pathname = usePathname(); // ✅ detect route change
 
   useEffect(() => {
-    setIsLoggedIn(!!localStorage.getItem('token'));
-  }, []);
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, [pathname]); // ✅ runs on every route change
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -25,8 +29,7 @@ export default function Navbar() {
         </div>
 
         <div style={rightStyle}>
-          <Link href="/products">Products</Link>
-
+          {isLoggedIn && <Link href="/products">Products</Link>}
           {isLoggedIn && <Link href="/cart">Cart</Link>}
           {isLoggedIn && <Link href="/orders">Orders</Link>}
 

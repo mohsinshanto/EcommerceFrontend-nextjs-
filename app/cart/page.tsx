@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { apiRequest } from '../lib/api';
 
 type CartItem = {
@@ -10,24 +11,33 @@ type CartItem = {
     id: number;
     name: string;
     price: number;
+    image_url: string;
   };
 };
 
-export default function Cart() {
+export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  // update cart item quantity
+  const updateQuantity = async (cartId: number, quantity: number) => {
+    try {
+      await apiRequest(`/cart/${cartId}`, 'PUT', {
+        quantity,
+      });
 
+      fetchCart(); // refresh UI
+    } catch (err: any) {
+      console.log(err.response?.data); // 👈 IMPORTANT
+      alert(err.response?.data?.error || 'Failed to update quantity');
+    }
+  };
+  // ✅ Fetch cart
   const fetchCart = async () => {
     try {
       const res = await apiRequest('/cart');
-      setCart(Array.isArray(res.data.cart) ? res.data.cart : []);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
-        setCart([]); // empty cart
-      } else {
-        console.error('Fetch cart failed:', err);
-        setCart([]); // safety fallback
-      }
+      setCart(res.data.cart || []);
+    } catch (err) {
+      console.error('Failed to load cart');
     } finally {
       setLoading(false);
     }
@@ -36,58 +46,146 @@ export default function Cart() {
   useEffect(() => {
     fetchCart();
   }, []);
-
   const placeOrder = async () => {
     try {
       const res = await apiRequest('/order', 'POST');
-      alert(
-        `Order #${res.data.order_id} placed. Total Paid: ${res.data.totalPaid} BDT`
-      );
-      setCart([]);
+
+      alert('Order placed successfully');
+
+      // redirect to orders page
+      window.location.href = '/orders';
     } catch (err: any) {
       alert(err.response?.data?.error || 'Failed to place order');
     }
   };
-
-  const remove = async (id: number) => {
+  // ✅ Remove item
+  const removeItem = async (id: number) => {
     try {
       await apiRequest(`/cart/${id}`, 'DELETE');
-      setCart((prev) => prev.filter((item) => item.id !== id));
-    } catch (err) {
+      fetchCart(); // refresh
+    } catch {
       alert('Failed to remove item');
     }
   };
 
+  // ✅ Total calculation
   const total = cart.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
 
-  if (loading) {
-    return <p>Loading cart...</p>;
-  }
+  if (loading) return <p>Loading cart...</p>;
+
+  if (cart.length === 0)
+    return <p style={{ textAlign: 'center' }}>Cart is empty</p>;
 
   return (
-    <div>
-      <h2>Your Cart</h2>
+    <div style={{ padding: '20px' }}>
+      <h2 style={{ textAlign: 'center' }}>Your Cart</h2>
 
-      {cart.length === 0 && <p>Cart is empty</p>}
+      {cart.map((item) => (
+        <div
+          key={item.id}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid #ddd',
+            padding: '15px 0',
+          }}
+        >
+          {/* LEFT: Image + Info */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            {/* Image */}
+            <Image
+              src={item.product.image_url}
+              alt={item.product.name}
+              width={100}
+              height={80}
+              style={{
+                objectFit: 'cover',
+                borderRadius: '5px',
+              }}
+            />
 
-      {cart.map((c) => (
-        <div key={c.id}>
-          <p>
-            {c.product.name} — {c.quantity} × {c.product.price} BDT
-          </p>
-          <button onClick={() => remove(c.id)}>Remove</button>
+            {/* Info */}
+            <div>
+              <h4 style={{ margin: '0 0 5px 0' }}>{item.product.name}</h4>
+              <p style={{ margin: '2px 0' }}>Price: {item.product.price} BDT</p>
+              <div
+                style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
+              >
+                <button
+                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  disabled={item.quantity <= 1}
+                  style={{
+                    padding: '4px 10px',
+                    cursor: item.quantity <= 1 ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  -
+                </button>
+
+                <span>{item.quantity}</span>
+
+                <button
+                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  style={{
+                    padding: '4px 10px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  +
+                </button>
+              </div>
+              <p style={{ margin: '2px 0' }}>
+                Subtotal: {item.product.price * item.quantity} BDT
+              </p>
+            </div>
+          </div>
+
+          {/* RIGHT: Remove Button */}
+          <button
+            onClick={() => removeItem(item.id)}
+            style={{
+              padding: '6px 12px',
+              background: 'red',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+            }}
+          >
+            Remove
+          </button>
         </div>
       ))}
-
-      {cart.length > 0 && (
-        <>
-          <h3>Total: {total} BDT</h3>
-          <button onClick={placeOrder}>Place Order</button>
-        </>
-      )}
+      <div
+        style={{
+          marginTop: '20px',
+          textAlign: 'right',
+          fontSize: '18px',
+          fontWeight: 'bold',
+        }}
+      >
+        Total: ${total.toFixed(2)}
+      </div>
+      <div style={{ textAlign: 'center', marginTop: '10px' }}>
+        <button
+          onClick={placeOrder}
+          style={{
+            marginTop: '20px',
+            padding: '10px 20px',
+            background: 'green',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+          }}
+        >
+          Place Order
+        </button>
+      </div>
     </div>
   );
 }

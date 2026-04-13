@@ -2,7 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { apiRequest } from '../lib/api';
+import { useRouter } from 'next/navigation';
+import {
+  apiRequest,
+  getAuthMessage,
+  getErrorMessage,
+  isAuthError,
+} from '../lib/api';
+import AuthRequired from '../components/AuthRequired';
 
 type CartItem = {
   id: number;
@@ -16,28 +23,41 @@ type CartItem = {
 };
 
 export default function CartPage() {
+  const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
-  // update cart item quantity
+  const [error, setError] = useState('');
+  const [authMessage, setAuthMessage] = useState('');
+  const [actionMessage, setActionMessage] = useState('');
+
   const updateQuantity = async (cartId: number, quantity: number) => {
     try {
+      setError('');
+      setActionMessage('');
       await apiRequest(`/cart/${cartId}`, 'PUT', {
         quantity,
       });
 
-      fetchCart(); // refresh UI
-    } catch (err: any) {
-      console.log(err.response?.data); // 👈 IMPORTANT
-      alert(err.response?.data?.error || 'Failed to update quantity');
+      await fetchCart();
+    } catch (err) {
+      setError(getErrorMessage(err, 'Failed to update quantity'));
     }
   };
-  // ✅ Fetch cart
+
   const fetchCart = async () => {
     try {
-      const res = await apiRequest('/cart');
-      setCart(res.data.cart || []);
+      setAuthMessage('');
+      setError('');
+      const res = await apiRequest<{ cart: CartItem[] }>('/cart');
+      setCart(res.cart || []);
     } catch (err) {
-      console.error('Failed to load cart');
+      if (isAuthError(err)) {
+        setAuthMessage(getAuthMessage(err));
+        setCart([]);
+        return;
+      }
+
+      setError(getErrorMessage(err, 'Failed to load cart'));
     } finally {
       setLoading(false);
     }
@@ -48,40 +68,69 @@ export default function CartPage() {
   }, []);
   const placeOrder = async () => {
     try {
-      const res = await apiRequest('/order', 'POST');
-
-      alert('Order placed successfully');
-
-      // redirect to orders page
+      setError('');
+      setActionMessage('');
+      await apiRequest('/order', 'POST');
+      setActionMessage('Order placed successfully.');
       window.location.href = '/orders';
-    } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to place order');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Failed to place order'));
     }
   };
-  // ✅ Remove item
+
   const removeItem = async (id: number) => {
     try {
+      setError('');
+      setActionMessage('');
       await apiRequest(`/cart/${id}`, 'DELETE');
-      fetchCart(); // refresh
-    } catch {
-      alert('Failed to remove item');
+      setActionMessage('Item removed from cart.');
+      await fetchCart();
+    } catch (err) {
+      setError(getErrorMessage(err, 'Failed to remove item'));
     }
   };
 
-  // ✅ Total calculation
   const total = cart.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
 
   if (loading) return <p>Loading cart...</p>;
+  if (authMessage) {
+    return <AuthRequired message={authMessage} />;
+  }
+  if (error && cart.length === 0) {
+    return <p style={{ textAlign: 'center', color: 'red' }}>{error}</p>;
+  }
 
-  if (cart.length === 0)
-    return <p style={{ textAlign: 'center' }}>Cart is empty</p>;
+  if (cart.length === 0) {
+    return (
+      <div style={emptyWrapStyle}>
+        <div style={emptyCardStyle}>
+          <p style={emptyEyebrowStyle}>Your Cart</p>
+          <h2 style={emptyTitleStyle}>Your cart is empty</h2>
+          <p style={emptyMessageStyle}>
+            Add a few products to your cart and they will appear here when you
+            are ready to checkout.
+          </p>
+          <button
+            onClick={() => router.push('/products')}
+            style={emptyButtonStyle}
+          >
+            Continue Shopping
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '20px' }}>
       <h2 style={{ textAlign: 'center' }}>Your Cart</h2>
+      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+      {actionMessage && (
+        <p style={{ color: 'green', textAlign: 'center' }}>{actionMessage}</p>
+      )}
 
       {cart.map((item) => (
         <div
@@ -94,9 +143,7 @@ export default function CartPage() {
             padding: '15px 0',
           }}
         >
-          {/* LEFT: Image + Info */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            {/* Image */}
             <Image
               src={item.product.image_url}
               alt={item.product.name}
@@ -108,7 +155,6 @@ export default function CartPage() {
               }}
             />
 
-            {/* Info */}
             <div>
               <h4 style={{ margin: '0 0 5px 0' }}>{item.product.name}</h4>
               <p style={{ margin: '2px 0' }}>Price: {item.product.price} BDT</p>
@@ -144,7 +190,6 @@ export default function CartPage() {
             </div>
           </div>
 
-          {/* RIGHT: Remove Button */}
           <button
             onClick={() => removeItem(item.id)}
             style={{
@@ -189,3 +234,51 @@ export default function CartPage() {
     </div>
   );
 }
+
+const emptyWrapStyle: React.CSSProperties = {
+  minHeight: '55vh',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  padding: '24px',
+};
+
+const emptyCardStyle: React.CSSProperties = {
+  maxWidth: '520px',
+  width: '100%',
+  textAlign: 'center',
+  padding: '36px 32px',
+  borderRadius: '18px',
+  border: '1px solid #e5e7eb',
+  background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+  boxShadow: '0 18px 40px rgba(15, 23, 42, 0.08)',
+};
+
+const emptyEyebrowStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#64748b',
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  fontSize: '12px',
+  fontWeight: 700,
+};
+
+const emptyTitleStyle: React.CSSProperties = {
+  margin: '12px 0 10px',
+  color: '#0f172a',
+};
+
+const emptyMessageStyle: React.CSSProperties = {
+  margin: '0 0 22px',
+  color: '#475569',
+  lineHeight: 1.6,
+};
+
+const emptyButtonStyle: React.CSSProperties = {
+  border: 'none',
+  borderRadius: '999px',
+  background: '#0f172a',
+  color: '#fff',
+  padding: '11px 18px',
+  cursor: 'pointer',
+};

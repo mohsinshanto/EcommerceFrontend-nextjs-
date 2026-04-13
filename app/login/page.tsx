@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { apiRequest } from '../lib/api';
+import { apiRequest, getErrorMessage } from '../lib/api';
 
 export default function Login() {
   const [error, setError] = useState('');
@@ -17,7 +17,7 @@ export default function Login() {
     setLoading(true);
 
     const form = e.currentTarget;
-    const email = form.email.value.trim();
+    const email = form.email.value.trim().toLowerCase();
     const password = form.password.value;
 
     if (!email || !password) {
@@ -27,16 +27,19 @@ export default function Login() {
     }
 
     try {
-      const res = await apiRequest('/login', 'POST', { email, password });
+      const res = await apiRequest<{ token: string }>('/login', 'POST', {
+        email,
+        password,
+      });
 
-      if (res.status === 200 && res.data?.token) {
-        localStorage.setItem('token', res.data.token);
+      if (res.token) {
+        localStorage.setItem('token', res.token);
         router.push('/products');
       } else {
-        setError(res.data?.message || 'Login failed');
+        setError('Login failed');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Something went wrong');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Something went wrong'));
     } finally {
       setLoading(false);
     }

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
-import { apiRequest } from '../lib/api';
+import { apiRequest, getErrorMessage } from '../lib/api';
 
 export default function Register() {
   const [error, setError] = useState('');
@@ -18,8 +18,15 @@ export default function Register() {
 
     const formData = new FormData(e.currentTarget);
     const name = formData.get('name')?.toString().trim() || '';
-    const email = formData.get('email')?.toString().trim() || '';
+    const email =
+      formData.get('email')?.toString().trim().toLowerCase() || '';
     const password = formData.get('password')?.toString() || '';
+
+    if (!name) {
+      setError('Please enter your name');
+      setLoading(false);
+      return;
+    }
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters');
@@ -28,19 +35,19 @@ export default function Register() {
     }
 
     try {
-      const res = await apiRequest('/register', 'POST', {
+      const res = await apiRequest<{ message?: string }>('/register', 'POST', {
         name,
         email,
         password,
       });
 
-      if (res.status === 200 && res.data?.message) {
+      if (res.message) {
         router.push('/login');
       } else {
-        setError(res.data?.message || 'Registration failed');
+        setError('Registration failed');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Something went wrong');
+    } catch (err) {
+      setError(getErrorMessage(err, 'Something went wrong'));
     } finally {
       setLoading(false);
     }

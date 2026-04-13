@@ -2,8 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { apiRequest } from '../lib/api';
+import {
+  apiRequest,
+  getAuthMessage,
+  getErrorMessage,
+  isAuthError,
+} from '../lib/api';
 import { useRouter } from 'next/navigation';
+import Toast from '../components/Toast';
+import AuthRequired from '../components/AuthRequired';
 
 type Product = {
   id: number;
@@ -20,6 +27,17 @@ export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [authMessage, setAuthMessage] = useState('');
+  const [addingProductId, setAddingProductId] = useState<number | null>(null);
+  const [toast, setToast] = useState<{
+    open: boolean;
+    message: string;
+    variant: 'success' | 'error';
+  }>({
+    open: false,
+    message: '',
+    variant: 'success',
+  });
 
   // filters
   const [search, setSearch] = useState('');
@@ -33,18 +51,29 @@ export default function Products() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
+        setAuthMessage('');
+        setError('');
 
         let url = `/products?page=${page}`;
 
         if (appliedSearch.trim()) url += `&search=${appliedSearch}`;
         if (category) url += `&category=${category}`;
 
-        const res = await apiRequest(url);
+        const res = await apiRequest<{
+          products: Product[];
+          last_page: number;
+        }>(url);
 
-        setProducts(res.data.products ?? []);
-        setLastPage(res.data.last_page || 1);
-      } catch (err: any) {
-        setError(err.response?.data?.error || 'Failed to load products');
+        setProducts(res.products ?? []);
+        setLastPage(res.last_page || 1);
+      } catch (err) {
+        if (isAuthError(err)) {
+          setAuthMessage(getAuthMessage(err));
+          setProducts([]);
+          return;
+        }
+
+        setError(getErrorMessage(err, 'Failed to load products'));
       } finally {
         setLoading(false);
       }
@@ -60,22 +89,47 @@ export default function Products() {
 
   const addToCart = async (productId: number) => {
     try {
+      setError('');
+      setAddingProductId(productId);
       await apiRequest('/cart', 'POST', {
         product_id: productId,
         quantity: 1,
       });
-      alert('Added to cart');
-    } catch {
-      alert('Failed to add to cart');
+      setToast({
+        open: true,
+        message: 'Item added to your cart.',
+        variant: 'success',
+      });
+    } catch (err) {
+      setToast({
+        open: true,
+        message: getErrorMessage(err, 'Failed to add to cart'),
+        variant: 'error',
+      });
+    } finally {
+      setAddingProductId(null);
     }
   };
 
   if (loading) return <p>Loading products...</p>;
+  if (authMessage) return <AuthRequired message={authMessage} />;
   if (error) return <p>{error}</p>;
 
   return (
     <div style={{ padding: '20px' }}>
-      {/* ✅ Search Bar (button controlled) */}
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        variant={toast.variant}
+        onClose={() => setToast((current) => ({ ...current, open: false }))}
+        actionLabel={toast.variant === 'success' ? 'View cart' : undefined}
+        onAction={
+          toast.variant === 'success' ? () => router.push('/cart') : undefined
+        }
+      />
+
+      {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+
       <div style={{ marginBottom: '15px', textAlign: 'center' }}>
         <input
           type="text"
@@ -108,7 +162,6 @@ export default function Products() {
         </button>
       </div>
 
-      {/* ✅ Category */}
       <div style={{ marginBottom: '15px', textAlign: 'center' }}>
         <button
           onClick={() => {
@@ -172,7 +225,6 @@ export default function Products() {
         </button>
       </div>
 
-      {/* ✅ Products */}
       <div
         style={{
           display: 'flex',
@@ -184,7 +236,7 @@ export default function Products() {
         {products.map((p) => (
           <div
             key={p.id}
-            onClick={() => router.push(`/products/${p.id}`)} // ✅ navigation
+            onClick={() => router.push(`/products/${p.id}`)}
             style={{
               border: '1px solid #ddd',
               borderRadius: '8px',
@@ -195,7 +247,7 @@ export default function Products() {
               flexDirection: 'column',
               alignItems: 'center',
               textAlign: 'center',
-              cursor: 'pointer', // ✅ shows clickable
+              cursor: 'pointer',
             }}
           >
             <h3>{p.name}</h3>
@@ -216,24 +268,26 @@ export default function Products() {
             <p>Stock: {p.stock}</p>
 
             <button
-              disabled={p.stock === 0}
+              disabled={p.stock === 0 || addingProductId === p.id}
               onClick={(e) => {
-                e.stopPropagation(); // ✅ VERY IMPORTANT
+                e.stopPropagation();
                 addToCart(p.id);
               }}
               style={{
                 marginTop: 'auto',
                 padding: '8px 15px',
-                cursor: 'pointer',
+                cursor:
+                  p.stock === 0 || addingProductId === p.id
+                    ? 'not-allowed'
+                    : 'pointer',
               }}
             >
-              Add to Cart
+              {addingProductId === p.id ? 'Adding...' : 'Add to Cart'}
             </button>
           </div>
         ))}
       </div>
 
-      {/* ✅ Pagination */}
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
         <button
           onClick={() => setPage((p) => Math.max(p - 1, 1))}

@@ -6,7 +6,7 @@ export default function Home() {
   return (
     <div style={wrapperStyle}>
       <div style={containerStyle}>
-        <h1 style={titleStyle}>Welcome to Ecommerce</h1>
+        <h1 style={titleStyle}>Welcome to Ecommerce App</h1>
 
         <p style={subtitleStyle}>
           Discover quality products at the best prices.

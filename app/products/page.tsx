@@ -236,7 +236,6 @@ export default function Products() {
         {products.map((p) => (
           <div
             key={p.id}
-            onClick={() => router.push(`/products/${p.id}`)}
             style={{
               border: '1px solid #ddd',
               borderRadius: '8px',
@@ -247,7 +246,6 @@ export default function Products() {
               flexDirection: 'column',
               alignItems: 'center',
               textAlign: 'center',
-              cursor: 'pointer',
             }}
           >
             <h3>{p.name}</h3>
@@ -267,23 +265,53 @@ export default function Products() {
             <p>Price: ${p.price.toFixed(2)}</p>
             <p>Stock: {p.stock}</p>
 
-            <button
-              disabled={p.stock === 0 || addingProductId === p.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                addToCart(p.id);
-              }}
+            <div
               style={{
                 marginTop: 'auto',
-                padding: '8px 15px',
-                cursor:
-                  p.stock === 0 || addingProductId === p.id
-                    ? 'not-allowed'
-                    : 'pointer',
+                display: 'flex',
+                gap: '10px',
+                width: '100%',
               }}
             >
-              {addingProductId === p.id ? 'Adding...' : 'Add to Cart'}
-            </button>
+              <button
+                onClick={() => {
+                  router.push(`/products/${p.id}`);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  borderRadius: '999px',
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  cursor: 'pointer',
+                }}
+              >
+                View Details
+              </button>
+
+              <button
+                disabled={p.stock === 0 || addingProductId === p.id}
+                onClick={() => {
+                  addToCart(p.id);
+                }}
+                style={{
+                  flex: 1,
+                  padding: '8px 12px',
+                  borderRadius: '999px',
+                  border: 'none',
+                  background: '#0f172a',
+                  color: '#fff',
+                  cursor:
+                    p.stock === 0 || addingProductId === p.id
+                      ? 'not-allowed'
+                      : 'pointer',
+                  opacity:
+                    p.stock === 0 || addingProductId === p.id ? 0.7 : 1,
+                }}
+              >
+                {addingProductId === p.id ? 'Adding...' : 'Add to Cart'}
+              </button>
+            </div>
           </div>
         ))}
       </div>

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
@@ -125,6 +126,13 @@ export default function Register() {
         >
           {loading ? 'Registering...' : 'Register'}
         </button>
+
+        <div style={switchTextStyle}>
+          <span>Already registered?</span>{' '}
+          <Link href="/login" style={switchLinkStyle}>
+            Go to login
+          </Link>
+        </div>
       </form>
     </div>
   );
@@ -148,4 +156,17 @@ const iconButtonStyle: React.CSSProperties = {
   border: 'none',
   cursor: 'pointer',
   padding: 0,
+};
+
+const switchTextStyle: React.CSSProperties = {
+  marginTop: '4px',
+  textAlign: 'center',
+  color: '#475569',
+  fontSize: '14px',
+};
+
+const switchLinkStyle: React.CSSProperties = {
+  color: '#0f172a',
+  fontWeight: 600,
+  textDecoration: 'none',
 };

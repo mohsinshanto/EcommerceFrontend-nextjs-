@@ -98,7 +98,7 @@ export default function ProductDetails() {
   if (!product) return <p>Product not found</p>;
 
   return (
-    <div style={{ padding: '40px', display: 'flex', gap: '40px' }}>
+    <div style={pageStyle}>
       <Toast
         open={toast.open}
         message={toast.message}
@@ -110,39 +110,135 @@ export default function ProductDetails() {
         }
       />
 
-      <Image
-        src={product.image_url}
-        alt={product.name}
-        width={400}
-        height={300}
-        style={{ borderRadius: '10px' }}
-      />
+      <div style={contentStyle}>
+        <div style={imageWrapStyle}>
+          <Image
+            src={product.image_url}
+            alt={product.name}
+            width={800}
+            height={600}
+            style={imageStyle}
+          />
+        </div>
 
-      <div>
-        <h1>{product.name}</h1>
+        <div style={detailsStyle}>
+          <p style={eyebrowStyle}>{product.category}</p>
+          <h1 style={titleStyle}>{product.name}</h1>
 
-        <p style={{ color: '#666' }}>{product.category}</p>
+          <p style={descriptionStyle}>{product.description}</p>
 
-        <p style={{ marginTop: '10px' }}>{product.description}</p>
+          <div style={metaRowStyle}>
+            <h2 style={priceStyle}>${product.price.toFixed(2)}</h2>
+            <span style={stockStyle}>
+              {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+            </span>
+          </div>
 
-        <h2 style={{ marginTop: '20px' }}>${product.price.toFixed(2)}</h2>
+          {error && <p style={{ color: 'red' }}>{error}</p>}
 
-        <p>Stock: {product.stock}</p>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-
-        <button
-          onClick={addToCart}
-          disabled={product.stock === 0 || addingToCart}
-          style={{
-            marginTop: '20px',
-            padding: '10px 20px',
-            cursor:
-              product.stock === 0 || addingToCart ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {addingToCart ? 'Adding...' : 'Add to Cart'}
-        </button>
+          <button
+            onClick={addToCart}
+            disabled={product.stock === 0 || addingToCart}
+            style={{
+              ...buttonStyle,
+              cursor:
+                product.stock === 0 || addingToCart
+                  ? 'not-allowed'
+                  : 'pointer',
+              opacity: product.stock === 0 || addingToCart ? 0.7 : 1,
+            }}
+          >
+            {addingToCart ? 'Adding...' : 'Add to Cart'}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
+const pageStyle: React.CSSProperties = {
+  padding: '24px 16px',
+};
+
+const contentStyle: React.CSSProperties = {
+  maxWidth: '1080px',
+  margin: '0 auto',
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+  gap: '28px',
+  alignItems: 'start',
+};
+
+const imageWrapStyle: React.CSSProperties = {
+  borderRadius: '22px',
+  overflow: 'hidden',
+  background: '#f8fafc',
+  border: '1px solid #e5e7eb',
+  boxShadow: '0 18px 40px rgba(15, 23, 42, 0.08)',
+};
+
+const imageStyle: React.CSSProperties = {
+  width: '100%',
+  height: 'auto',
+  display: 'block',
+  objectFit: 'cover',
+};
+
+const detailsStyle: React.CSSProperties = {
+  padding: '8px 4px',
+};
+
+const eyebrowStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#64748b',
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+  fontSize: '12px',
+  fontWeight: 700,
+};
+
+const titleStyle: React.CSSProperties = {
+  margin: '10px 0 14px',
+  color: '#0f172a',
+  lineHeight: 1.15,
+};
+
+const descriptionStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#475569',
+  lineHeight: 1.7,
+  fontSize: '15px',
+};
+
+const metaRowStyle: React.CSSProperties = {
+  marginTop: '22px',
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '12px',
+  alignItems: 'center',
+};
+
+const priceStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#0f172a',
+};
+
+const stockStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  borderRadius: '999px',
+  background: '#e2f7ea',
+  color: '#166534',
+  padding: '8px 12px',
+  fontSize: '14px',
+  fontWeight: 600,
+};
+
+const buttonStyle: React.CSSProperties = {
+  marginTop: '24px',
+  border: 'none',
+  borderRadius: '999px',
+  background: '#0f172a',
+  color: '#fff',
+  padding: '12px 20px',
+};

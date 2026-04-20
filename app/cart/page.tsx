@@ -66,18 +66,6 @@ export default function CartPage() {
   useEffect(() => {
     fetchCart();
   }, []);
-  const placeOrder = async () => {
-    try {
-      setError('');
-      setActionMessage('');
-      await apiRequest('/order', 'POST');
-      setActionMessage('Order placed successfully.');
-      window.location.href = '/orders';
-    } catch (err) {
-      setError(getErrorMessage(err, 'Failed to place order'));
-    }
-  };
-
   const removeItem = async (id: number) => {
     try {
       setError('');
@@ -157,7 +145,9 @@ export default function CartPage() {
 
             <div>
               <h4 style={{ margin: '0 0 5px 0' }}>{item.product.name}</h4>
-              <p style={{ margin: '2px 0' }}>Price: {item.product.price} BDT</p>
+              <p style={{ margin: '2px 0' }}>
+                Price: ${item.product.price.toFixed(2)}
+              </p>
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
               >
@@ -185,7 +175,7 @@ export default function CartPage() {
                 </button>
               </div>
               <p style={{ margin: '2px 0' }}>
-                Subtotal: {item.product.price * item.quantity} BDT
+                Subtotal: ${(item.product.price * item.quantity).toFixed(2)}
               </p>
             </div>
           </div>
@@ -217,18 +207,18 @@ export default function CartPage() {
       </div>
       <div style={{ textAlign: 'center', marginTop: '10px' }}>
         <button
-          onClick={placeOrder}
+          onClick={() => router.push('/checkout')}
           style={{
             marginTop: '20px',
             padding: '10px 20px',
-            background: 'green',
+            background: '#0f172a',
             color: '#fff',
             border: 'none',
             borderRadius: '5px',
             cursor: 'pointer',
           }}
         >
-          Place Order
+          Proceed to Checkout
         </button>
       </div>
     </div>

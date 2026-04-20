@@ -12,6 +12,15 @@ import AuthRequired from '../components/AuthRequired';
 
 type Order = {
   id: number;
+  customer_name: string;
+  phone: string;
+  address_line: string;
+  city: string;
+  area: string;
+  postal_code: string;
+  notes: string;
+  payment_method: string;
+  status: string;
   total_price: number;
   created_at: string;
 };
@@ -99,8 +108,30 @@ export default function Orders() {
                 <strong>Order ID:</strong> {order.id}
               </p>
               <p>
+                <strong>Customer:</strong> {order.customer_name}
+              </p>
+              <p>
+                <strong>Phone:</strong> {order.phone}
+              </p>
+              <p>
+                <strong>Payment:</strong> {order.payment_method}
+              </p>
+              <p>
+                <strong>Status:</strong> {order.status}
+              </p>
+              <p>
                 <strong>Total:</strong> ${order.total_price.toFixed(2)}
               </p>
+              <p>
+                <strong>Delivery Address:</strong> {order.address_line},{' '}
+                {order.area}, {order.city}
+                {order.postal_code ? `, ${order.postal_code}` : ''}
+              </p>
+              {order.notes && (
+                <p>
+                  <strong>Notes:</strong> {order.notes}
+                </p>
+              )}
               <p>
                 <strong>Date:</strong>{' '}
                 {new Date(order.created_at).toLocaleDateString()}

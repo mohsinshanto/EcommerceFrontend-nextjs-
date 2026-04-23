@@ -262,7 +262,7 @@ export default function Products() {
             <p>
               <b>Category:</b> {p.category}
             </p>
-            <p>Price: ${p.price.toFixed(2)}</p>
+            <p>Price: {p.price.toFixed(2)} BDT</p>
             <p>Stock: {p.stock}</p>
 
             <div

@@ -265,11 +265,11 @@ export default function CheckoutPage() {
                 <div>
                   <p style={summaryItemNameStyle}>{item.product.name}</p>
                   <p style={summaryItemMetaStyle}>
-                    Qty {item.quantity} x ${item.product.price.toFixed(2)}
+                    Qty {item.quantity} x {item.product.price.toFixed(2)} BDT
                   </p>
                 </div>
                 <strong>
-                  ${(item.product.price * item.quantity).toFixed(2)}
+                  {(item.product.price * item.quantity).toFixed(2)} BDT
                 </strong>
               </div>
             ))}
@@ -277,7 +277,7 @@ export default function CheckoutPage() {
 
           <div style={totalRowStyle}>
             <span>Total</span>
-            <strong>${total.toFixed(2)}</strong>
+            <strong>{total.toFixed(2)} BDT</strong>
           </div>
         </div>
       </div>

@@ -25,6 +25,20 @@ type Order = {
   created_at: string;
 };
 
+function formatPublicOrderNumber(order: Order) {
+  const createdAt = new Date(order.created_at);
+
+  if (Number.isNaN(createdAt.getTime())) {
+    return `ORD-${String(order.id).padStart(6, '0')}`;
+  }
+
+  const year = createdAt.getFullYear();
+  const month = String(createdAt.getMonth() + 1).padStart(2, '0');
+  const day = String(createdAt.getDate()).padStart(2, '0');
+
+  return `ORD-${year}${month}${day}-${String(order.id).padStart(6, '0')}`;
+}
+
 export default function Orders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [error, setError] = useState('');
@@ -105,7 +119,7 @@ export default function Orders() {
           {orders.map((order) => (
             <div key={order.id} style={cardStyle}>
               <p>
-                <strong>Order ID:</strong> {order.id}
+                <strong>Order Number:</strong> {formatPublicOrderNumber(order)}
               </p>
               <p>
                 <strong>Customer:</strong> {order.customer_name}
@@ -120,7 +134,7 @@ export default function Orders() {
                 <strong>Status:</strong> {order.status}
               </p>
               <p>
-                <strong>Total:</strong> ${order.total_price.toFixed(2)}
+                <strong>Total:</strong> {order.total_price.toFixed(2)} BDT
               </p>
               <p>
                 <strong>Delivery Address:</strong> {order.address_line},{' '}

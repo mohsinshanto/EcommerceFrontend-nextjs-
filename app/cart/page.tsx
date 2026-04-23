@@ -146,7 +146,7 @@ export default function CartPage() {
             <div>
               <h4 style={{ margin: '0 0 5px 0' }}>{item.product.name}</h4>
               <p style={{ margin: '2px 0' }}>
-                Price: ${item.product.price.toFixed(2)}
+                Price: {item.product.price.toFixed(2)} BDT
               </p>
               <div
                 style={{ display: 'flex', alignItems: 'center', gap: '10px' }}
@@ -175,7 +175,7 @@ export default function CartPage() {
                 </button>
               </div>
               <p style={{ margin: '2px 0' }}>
-                Subtotal: ${(item.product.price * item.quantity).toFixed(2)}
+                Subtotal: {(item.product.price * item.quantity).toFixed(2)} BDT
               </p>
             </div>
           </div>
@@ -203,7 +203,7 @@ export default function CartPage() {
           fontWeight: 'bold',
         }}
       >
-        Total: ${total.toFixed(2)}
+        Total: {total.toFixed(2)} BDT
       </div>
       <div style={{ textAlign: 'center', marginTop: '10px' }}>
         <button

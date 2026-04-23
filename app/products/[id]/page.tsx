@@ -128,7 +128,7 @@ export default function ProductDetails() {
           <p style={descriptionStyle}>{product.description}</p>
 
           <div style={metaRowStyle}>
-            <h2 style={priceStyle}>${product.price.toFixed(2)}</h2>
+            <h2 style={priceStyle}>{product.price.toFixed(2)} BDT</h2>
             <span style={stockStyle}>
               {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
             </span>

@@ -44,7 +44,8 @@ export default function Products() {
   const [appliedSearch, setAppliedSearch] = useState(''); // ✅ only used for API
   const [category, setCategory] = useState('');
   const [page, setPage] = useState(1);
-  const [lastPage, setLastPage] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrev, setHasPrev] = useState(false);
 
   // ✅ fetch products
   useEffect(() => {
@@ -61,11 +62,13 @@ export default function Products() {
 
         const res = await apiRequest<{
           products: Product[];
-          last_page: number;
+          has_next: boolean;
+          has_prev: boolean;
         }>(url);
 
         setProducts(res.products ?? []);
-        setLastPage(res.last_page || 1);
+        setHasNext(Boolean(res.has_next));
+        setHasPrev(Boolean(res.has_prev));
       } catch (err) {
         if (isAuthError(err)) {
           setAuthMessage(getAuthMessage(err));
@@ -319,25 +322,23 @@ export default function Products() {
       <div style={{ marginTop: '20px', textAlign: 'center' }}>
         <button
           onClick={() => setPage((p) => Math.max(p - 1, 1))}
-          disabled={page === 1}
+          disabled={!hasPrev}
           style={{
             marginRight: '10px',
-            cursor: page === 1 ? 'not-allowed' : 'pointer',
+            cursor: !hasPrev ? 'not-allowed' : 'pointer',
           }}
         >
           Prev
         </button>
 
-        <span>
-          Page {page} of {lastPage}
-        </span>
+        <span>Page {page}</span>
 
         <button
-          onClick={() => setPage((p) => Math.min(p + 1, lastPage))}
-          disabled={page === lastPage}
+          onClick={() => setPage((p) => p + 1)}
+          disabled={!hasNext}
           style={{
             marginLeft: '10px',
-            cursor: page === lastPage ? 'not-allowed' : 'pointer',
+            cursor: !hasNext ? 'not-allowed' : 'pointer',
           }}
         >
           Next

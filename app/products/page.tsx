@@ -25,6 +25,7 @@ type Product = {
 export default function Products() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
+  const [productCount, setProductCount] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [authMessage, setAuthMessage] = useState('');
@@ -62,11 +63,13 @@ export default function Products() {
 
         const res = await apiRequest<{
           products: Product[];
+          count: number;
           has_next: boolean;
           has_prev: boolean;
         }>(url);
 
         setProducts(res.products ?? []);
+        setProductCount(res.count ?? null);
         setHasNext(Boolean(res.has_next));
         setHasPrev(Boolean(res.has_prev));
       } catch (err) {
@@ -132,6 +135,20 @@ export default function Products() {
       />
 
       {error && <p style={{ color: 'red', textAlign: 'center' }}>{error}</p>}
+
+      <p
+        style={{
+          fontSize: '2rem',
+          textAlign: 'center',
+          marginBottom: '12px',
+          color: '#121314',
+          fontWeight: 200,
+        }}
+      >
+        {productCount !== null
+          ? `${productCount} products available`
+          : 'Product count unavailable'}
+      </p>
 
       <div style={{ marginBottom: '15px', textAlign: 'center' }}>
         <input
@@ -308,8 +325,7 @@ export default function Products() {
                     p.stock === 0 || addingProductId === p.id
                       ? 'not-allowed'
                       : 'pointer',
-                  opacity:
-                    p.stock === 0 || addingProductId === p.id ? 0.7 : 1,
+                  opacity: p.stock === 0 || addingProductId === p.id ? 0.7 : 1,
                 }}
               >
                 {addingProductId === p.id ? 'Adding...' : 'Add to Cart'}

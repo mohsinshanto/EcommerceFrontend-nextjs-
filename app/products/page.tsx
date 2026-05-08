@@ -56,10 +56,19 @@ export default function Products() {
         setAuthMessage('');
         setError('');
 
-        let url = `/products?page=${page}`;
+        const params = new URLSearchParams({
+          page: String(page),
+        });
 
-        if (appliedSearch.trim()) url += `&search=${appliedSearch}`;
-        if (category) url += `&category=${category}`;
+        if (appliedSearch.trim()) {
+          params.set('search', appliedSearch.trim());
+        }
+
+        if (category) {
+          params.set('category', category);
+        }
+
+        const url = `/products?${params.toString()}`;
 
         const res = await apiRequest<{
           products: Product[];
@@ -185,6 +194,7 @@ export default function Products() {
       <div style={{ marginBottom: '15px', textAlign: 'center' }}>
         <button
           onClick={() => {
+            setSearch('');
             setCategory('');
             setPage(1);
             setAppliedSearch('');
@@ -197,6 +207,7 @@ export default function Products() {
         </button>
         <button
           onClick={() => {
+            setSearch('');
             setCategory('mobile');
             setPage(1);
             setAppliedSearch('');
@@ -209,6 +220,7 @@ export default function Products() {
         </button>
         <button
           onClick={() => {
+            setSearch('');
             setCategory('laptop');
             setPage(1);
             setAppliedSearch('');
@@ -221,6 +233,7 @@ export default function Products() {
         </button>
         <button
           onClick={() => {
+            setSearch('');
             setCategory('audio');
             setPage(1);
             setAppliedSearch('');
@@ -233,6 +246,7 @@ export default function Products() {
         </button>
         <button
           onClick={() => {
+            setSearch('');
             setCategory('accessories');
             setPage(1);
             setAppliedSearch('');
@@ -253,6 +267,12 @@ export default function Products() {
           justifyContent: 'center',
         }}
       >
+        {products.length === 0 && (
+          <p style={{ textAlign: 'center', color: '#475569' }}>
+            No products matched your current search or filter.
+          </p>
+        )}
+
         {products.map((p) => (
           <div
             key={p.id}

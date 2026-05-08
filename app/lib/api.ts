@@ -15,6 +15,7 @@ export class ApiError extends Error {
 
 const api = axios.create({
   baseURL: API_URL,
+  timeout: 8000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -65,6 +66,10 @@ export async function apiRequest<T>(
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
+    }
+
+    if (axios.isAxiosError(error) && error.code === "ECONNABORTED") {
+      throw new ApiError("The server took too long to respond");
     }
 
     throw new ApiError("Unable to connect to the server");

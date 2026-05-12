@@ -23,9 +23,16 @@ type Product = {
 };
 
 export default function Products() {
+  const categoryOrder = ['mobile', 'laptop', 'audio', 'accessories'] as const;
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [productCount, setProductCount] = useState<number | null>(null);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({
+    mobile: 0,
+    laptop: 0,
+    audio: 0,
+    accessories: 0,
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [authMessage, setAuthMessage] = useState('');
@@ -73,12 +80,21 @@ export default function Products() {
         const res = await apiRequest<{
           products: Product[];
           count: number;
+          category_counts: Record<string, number>;
           has_next: boolean;
           has_prev: boolean;
         }>(url);
 
         setProducts(res.products ?? []);
         setProductCount(res.count ?? null);
+        setCategoryCounts(
+          res.category_counts ?? {
+            mobile: 0,
+            laptop: 0,
+            audio: 0,
+            accessories: 0,
+          }
+        );
         setHasNext(Boolean(res.has_next));
         setHasPrev(Boolean(res.has_prev));
       } catch (err) {
@@ -194,10 +210,8 @@ export default function Products() {
       <div style={{ marginBottom: '15px', textAlign: 'center' }}>
         <button
           onClick={() => {
-            setSearch('');
             setCategory('');
             setPage(1);
-            setAppliedSearch('');
           }}
           style={{
             padding: '5px 20px',
@@ -205,58 +219,20 @@ export default function Products() {
         >
           All
         </button>
-        <button
-          onClick={() => {
-            setSearch('');
-            setCategory('mobile');
-            setPage(1);
-            setAppliedSearch('');
-          }}
-          style={{
-            padding: '5px 20px',
-          }}
-        >
-          Mobile
-        </button>
-        <button
-          onClick={() => {
-            setSearch('');
-            setCategory('laptop');
-            setPage(1);
-            setAppliedSearch('');
-          }}
-          style={{
-            padding: '5px 20px',
-          }}
-        >
-          Laptop
-        </button>
-        <button
-          onClick={() => {
-            setSearch('');
-            setCategory('audio');
-            setPage(1);
-            setAppliedSearch('');
-          }}
-          style={{
-            padding: '5px 20px',
-          }}
-        >
-          Audio
-        </button>
-        <button
-          onClick={() => {
-            setSearch('');
-            setCategory('accessories');
-            setPage(1);
-            setAppliedSearch('');
-          }}
-          style={{
-            padding: '5px 20px',
-          }}
-        >
-          Accessories
-        </button>
+        {categoryOrder.map((categoryName) => (
+          <button
+            key={categoryName}
+            onClick={() => {
+              setCategory(categoryName);
+              setPage(1);
+            }}
+            style={{
+              padding: '5px 20px',
+            }}
+          >
+            {`${categoryName.charAt(0).toUpperCase()}${categoryName.slice(1)} (${categoryCounts[categoryName] ?? 0})`}
+          </button>
+        ))}
       </div>
 
       <div

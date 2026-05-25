@@ -29,8 +29,16 @@ type AdminOrder = {
   postal_code: string;
   notes: string;
   payment_method: string;
+  payment_status: string;
   status: string;
   total_price: number;
+  transaction_id: string;
+  validation_id: string;
+  session_key: string;
+  bank_tran_id: string;
+  currency: string;
+  gateway_amount: number;
+  card_type: string;
   archived: boolean;
   created_at: string;
   items: AdminOrderItem[];
@@ -168,9 +176,29 @@ export default function AdminOrders() {
                 </div>
                 <div>
                   <p style={labelStyle}>Payment</p>
-                  <p style={valueStyle}>{order.payment_method}</p>
+                  <p style={valueStyle}>
+                    {order.payment_method} ({order.payment_status})
+                  </p>
                 </div>
               </div>
+
+              {(order.transaction_id || order.validation_id || order.bank_tran_id) && (
+                <div style={addressBoxStyle}>
+                  <p style={labelStyle}>Gateway Details</p>
+                  {order.transaction_id && (
+                    <p style={valueStyle}>Transaction: {order.transaction_id}</p>
+                  )}
+                  {order.validation_id && (
+                    <p style={valueStyle}>Validation: {order.validation_id}</p>
+                  )}
+                  {order.bank_tran_id && (
+                    <p style={valueStyle}>Bank Transaction: {order.bank_tran_id}</p>
+                  )}
+                  {order.card_type && (
+                    <p style={valueStyle}>Card Type: {order.card_type}</p>
+                  )}
+                </div>
+              )}
 
               <div style={addressBoxStyle}>
                 <p style={labelStyle}>Delivery Address</p>

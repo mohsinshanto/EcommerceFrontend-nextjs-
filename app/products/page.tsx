@@ -24,10 +24,13 @@ type Product = {
 
 export default function Products() {
   const categoryOrder = ['mobile', 'laptop', 'audio', 'accessories'] as const;
+  type Category = (typeof categoryOrder)[number];
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [productCount, setProductCount] = useState<number | null>(null);
-  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({
+  const [categoryCounts, setCategoryCounts] = useState<
+    Record<Category, number>
+  >({
     mobile: 0,
     laptop: 0,
     audio: 0,
@@ -74,17 +77,16 @@ export default function Products() {
         if (category) {
           params.set('category', category);
         }
-
         const url = `/products?${params.toString()}`;
 
         const res = await apiRequest<{
           products: Product[];
           count: number;
-          category_counts: Record<string, number>;
+          category_counts: Record<Category, number>;
           has_next: boolean;
           has_prev: boolean;
         }>(url);
-
+        console.log(res);
         setProducts(res.products ?? []);
         setProductCount(res.count ?? null);
         setCategoryCounts(

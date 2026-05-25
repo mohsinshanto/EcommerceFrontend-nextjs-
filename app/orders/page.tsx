@@ -20,8 +20,10 @@ type Order = {
   postal_code: string;
   notes: string;
   payment_method: string;
+  payment_status: string;
   status: string;
   total_price: number;
+  transaction_id: string;
   created_at: string;
 };
 
@@ -131,8 +133,16 @@ export default function Orders() {
                 <strong>Payment:</strong> {order.payment_method}
               </p>
               <p>
+                <strong>Payment Status:</strong> {order.payment_status}
+              </p>
+              <p>
                 <strong>Status:</strong> {order.status}
               </p>
+              {order.transaction_id && (
+                <p>
+                  <strong>Transaction ID:</strong> {order.transaction_id}
+                </p>
+              )}
               <p>
                 <strong>Total:</strong> {order.total_price.toFixed(2)} BDT
               </p>

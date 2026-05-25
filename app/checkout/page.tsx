@@ -32,6 +32,8 @@ type CheckoutForm = {
   notes: string;
 };
 
+type PaymentMethod = 'cod' | 'sslcommerz';
+
 const initialForm: CheckoutForm = {
   customer_name: '',
   phone: '',
@@ -46,6 +48,7 @@ export default function CheckoutPage() {
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [form, setForm] = useState<CheckoutForm>(initialForm);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -86,6 +89,10 @@ export default function CheckoutPage() {
     (sum, item) => sum + item.product.price * item.quantity,
     0
   );
+  const paymentLabel =
+    paymentMethod === 'sslcommerz'
+      ? 'SSLCommerz Sandbox'
+      : 'Cash on Delivery';
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -114,10 +121,18 @@ export default function CheckoutPage() {
 
     try {
       setSubmitting(true);
-      await apiRequest('/order', 'POST', {
+      const response = await apiRequest<{
+        gateway_url?: string;
+      }>('/order', 'POST', {
         ...form,
-        payment_method: 'cod',
+        payment_method: paymentMethod,
       });
+
+      if (paymentMethod === 'sslcommerz' && response.gateway_url) {
+        window.location.href = response.gateway_url;
+        return;
+      }
+
       setToast({
         open: true,
         message: 'Order placed successfully. Redirecting to your orders...',
@@ -176,63 +191,119 @@ export default function CheckoutPage() {
           <p style={eyebrowStyle}>Checkout</p>
           <h1 style={headingStyle}>Delivery Details</h1>
           <p style={subtleTextStyle}>
-            Payment method: <strong>Cash on Delivery</strong>
+            Choose how you want to pay for this order.
           </p>
 
-          <div style={fieldGridStyle}>
-            <input
-              name="customer_name"
-              placeholder="Full name"
-              value={form.customer_name}
-              onChange={handleChange}
-              style={inputStyle}
-            />
-            <input
-              name="phone"
-              placeholder="Mobile number"
-              value={form.phone}
-              onChange={handleChange}
-              style={inputStyle}
-            />
-            <input
-              name="city"
-              placeholder="City"
-              value={form.city}
-              onChange={handleChange}
-              style={inputStyle}
-            />
-            <input
-              name="area"
-              placeholder="Area / locality"
-              value={form.area}
-              onChange={handleChange}
-              style={inputStyle}
-            />
+          <div style={paymentMethodWrapStyle}>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('cod')}
+              style={{
+                ...paymentMethodButtonStyle,
+                ...(paymentMethod === 'cod' ? activePaymentMethodButtonStyle : {}),
+              }}
+            >
+              Cash on Delivery
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('sslcommerz')}
+              style={{
+                ...paymentMethodButtonStyle,
+                ...(paymentMethod === 'sslcommerz'
+                  ? activePaymentMethodButtonStyle
+                  : {}),
+              }}
+            >
+              SSLCommerz Sandbox
+            </button>
           </div>
 
-          <input
-            name="address_line"
-            placeholder="Address line (e.g. House 12, Road 5, Dhanmondi)"
-            value={form.address_line}
-            onChange={handleChange}
-            style={{ ...inputStyle, marginTop: '14px' }}
-          />
+          <div style={paymentInfoCardStyle}>
+            <p style={paymentInfoTitleStyle}>Selected Payment Method</p>
+            <p style={paymentInfoValueStyle}>{paymentLabel}</p>
+            <p style={paymentInfoTextStyle}>
+              {paymentMethod === 'sslcommerz'
+                ? 'You will be redirected to the SSLCommerz sandbox hosted payment page to complete the test transaction.'
+                : 'Your order will be placed immediately and you will pay when the order is delivered.'}
+            </p>
+          </div>
 
-          <input
-            name="postal_code"
-            placeholder="Postal code (optional, e.g. 1205)"
-            value={form.postal_code}
-            onChange={handleChange}
-            style={{ ...inputStyle, marginTop: '14px' }}
-          />
+          <div style={fieldGridStyle}>
+            <label style={fieldLabelStyle}>
+              Full name
+              <input
+                name="customer_name"
+                placeholder="Full name"
+                value={form.customer_name}
+                onChange={handleChange}
+                style={inputStyle}
+              />
+            </label>
+            <label style={fieldLabelStyle}>
+              Mobile number
+              <input
+                name="phone"
+                placeholder="Mobile number"
+                value={form.phone}
+                onChange={handleChange}
+                style={inputStyle}
+              />
+            </label>
+            <label style={fieldLabelStyle}>
+              City
+              <input
+                name="city"
+                placeholder="City"
+                value={form.city}
+                onChange={handleChange}
+                style={inputStyle}
+              />
+            </label>
+            <label style={fieldLabelStyle}>
+              Area / locality
+              <input
+                name="area"
+                placeholder="Area / locality"
+                value={form.area}
+                onChange={handleChange}
+                style={inputStyle}
+              />
+            </label>
+          </div>
 
-          <textarea
-            name="notes"
-            placeholder="Delivery notes (optional, e.g. Call me before arrival)"
-            value={form.notes}
-            onChange={handleChange}
-            style={textareaStyle}
-          />
+          <label style={{ ...fieldLabelStyle, marginTop: '14px' }}>
+            Address line
+            <input
+              name="address_line"
+              placeholder="Address line (e.g. House 12, Road 5, Dhanmondi)"
+              value={form.address_line}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+          </label>
+
+          <label style={{ ...fieldLabelStyle, marginTop: '14px' }}>
+            Postal code
+            <input
+              name="postal_code"
+              placeholder="Optional, e.g. 1205"
+              value={form.postal_code}
+              onChange={handleChange}
+              style={inputStyle}
+            />
+          </label>
+
+          <label style={{ ...fieldLabelStyle, marginTop: '14px' }}>
+            Delivery notes
+            <textarea
+              name="notes"
+              placeholder="Optional, e.g. Call me before arrival"
+              value={form.notes}
+              onChange={handleChange}
+              style={textareaStyle}
+            />
+          </label>
 
           {error && <p style={errorStyle}>{error}</p>}
 
@@ -250,7 +321,13 @@ export default function CheckoutPage() {
               disabled={submitting}
               style={primaryButtonStyle}
             >
-              {submitting ? 'Placing Order...' : 'Confirm Cash on Delivery'}
+              {submitting
+                ? paymentMethod === 'sslcommerz'
+                  ? 'Redirecting to SSLCommerz...'
+                  : 'Placing Order...'
+                : paymentMethod === 'sslcommerz'
+                  ? 'Pay with SSLCommerz'
+                  : 'Confirm Cash on Delivery'}
             </button>
           </div>
         </form>
@@ -278,6 +355,18 @@ export default function CheckoutPage() {
           <div style={totalRowStyle}>
             <span>Total</span>
             <strong>{total.toFixed(2)} BDT</strong>
+          </div>
+
+          <div style={summaryNoteStyle}>
+            <p style={summaryNoteTitleStyle}>Payment Summary</p>
+            <p style={summaryNoteTextStyle}>
+              Method: <strong>{paymentLabel}</strong>
+            </p>
+            <p style={summaryNoteTextStyle}>
+              {paymentMethod === 'sslcommerz'
+                ? 'After clicking pay, you will leave this page briefly to complete the sandbox gateway flow.'
+                : 'No online payment step is required for this order.'}
+            </p>
           </div>
         </div>
       </div>
@@ -331,6 +420,67 @@ const fieldGridStyle: React.CSSProperties = {
   gap: '14px',
 };
 
+const fieldLabelStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: '8px',
+  color: '#334155',
+  fontSize: '14px',
+  fontWeight: 600,
+};
+
+const paymentMethodWrapStyle: React.CSSProperties = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: '12px',
+  marginBottom: '18px',
+};
+
+const paymentInfoCardStyle: React.CSSProperties = {
+  marginBottom: '18px',
+  padding: '16px 18px',
+  borderRadius: '16px',
+  border: '1px solid #dbe4f0',
+  background: '#f8fafc',
+};
+
+const paymentInfoTitleStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#64748b',
+  fontSize: '12px',
+  fontWeight: 700,
+  textTransform: 'uppercase',
+  letterSpacing: '0.08em',
+};
+
+const paymentInfoValueStyle: React.CSSProperties = {
+  margin: '8px 0 6px',
+  color: '#0f172a',
+  fontSize: '18px',
+  fontWeight: 700,
+};
+
+const paymentInfoTextStyle: React.CSSProperties = {
+  margin: 0,
+  color: '#475569',
+  lineHeight: 1.6,
+};
+
+const paymentMethodButtonStyle: React.CSSProperties = {
+  borderRadius: '999px',
+  border: '1px solid #cbd5e1',
+  background: '#fff',
+  color: '#0f172a',
+  padding: '10px 16px',
+  cursor: 'pointer',
+};
+
+const activePaymentMethodButtonStyle: React.CSSProperties = {
+  background: '#0f172a',
+  color: '#fff',
+  border: '1px solid #0f172a',
+};
+
 const inputStyle: React.CSSProperties = {
   width: '100%',
   padding: '12px 14px',
@@ -342,7 +492,6 @@ const inputStyle: React.CSSProperties = {
 const textareaStyle: React.CSSProperties = {
   width: '100%',
   minHeight: '110px',
-  marginTop: '14px',
   padding: '12px 14px',
   borderRadius: '12px',
   border: '1px solid #cbd5e1',
@@ -413,6 +562,26 @@ const totalRowStyle: React.CSSProperties = {
   marginTop: '18px',
   fontSize: '18px',
   color: '#0f172a',
+};
+
+const summaryNoteStyle: React.CSSProperties = {
+  marginTop: '18px',
+  padding: '16px',
+  borderRadius: '16px',
+  border: '1px solid #e2e8f0',
+  background: '#f8fafc',
+};
+
+const summaryNoteTitleStyle: React.CSSProperties = {
+  margin: '0 0 8px',
+  color: '#0f172a',
+  fontWeight: 700,
+};
+
+const summaryNoteTextStyle: React.CSSProperties = {
+  margin: '6px 0 0',
+  color: '#475569',
+  lineHeight: 1.6,
 };
 
 const errorStyle: React.CSSProperties = {

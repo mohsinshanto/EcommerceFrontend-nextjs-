@@ -32,7 +32,6 @@ export default function Login() {
         email,
         password,
       });
-
       if (res.token) {
         localStorage.setItem('token', res.token);
         router.push('/products');

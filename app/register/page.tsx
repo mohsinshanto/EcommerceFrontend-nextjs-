@@ -19,8 +19,7 @@ export default function Register() {
 
     const formData = new FormData(e.currentTarget);
     const name = formData.get('name')?.toString().trim() || '';
-    const email =
-      formData.get('email')?.toString().trim().toLowerCase() || '';
+    const email = formData.get('email')?.toString().trim().toLowerCase() || '';
     const password = formData.get('password')?.toString() || '';
 
     if (!name) {
@@ -41,7 +40,6 @@ export default function Register() {
         email,
         password,
       });
-
       if (res.message) {
         router.push('/login');
       } else {
@@ -57,7 +55,7 @@ export default function Register() {
   return (
     <div
       style={{
-        height: '50vh',
+        height: '60vh',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',

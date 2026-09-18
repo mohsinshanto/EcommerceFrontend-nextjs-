@@ -68,8 +68,8 @@ export default function CheckoutPage() {
       try {
         setAuthMessage('');
         setError('');
-        const res = await apiRequest<{ cart: CartItem[] }>('/cart');
-        setCart(res.cart || []);
+        const res = await apiRequest<{ items: CartItem[] }>('/cart');
+        setCart(res.items || []);
       } catch (err) {
         if (isAuthError(err)) {
           setAuthMessage(getAuthMessage(err));
@@ -90,9 +90,7 @@ export default function CheckoutPage() {
     0
   );
   const paymentLabel =
-    paymentMethod === 'sslcommerz'
-      ? 'SSLCommerz Sandbox'
-      : 'Cash on Delivery';
+    paymentMethod === 'sslcommerz' ? 'SSLCommerz Sandbox' : 'Cash on Delivery';
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -200,7 +198,9 @@ export default function CheckoutPage() {
               onClick={() => setPaymentMethod('cod')}
               style={{
                 ...paymentMethodButtonStyle,
-                ...(paymentMethod === 'cod' ? activePaymentMethodButtonStyle : {}),
+                ...(paymentMethod === 'cod'
+                  ? activePaymentMethodButtonStyle
+                  : {}),
               }}
             >
               Cash on Delivery

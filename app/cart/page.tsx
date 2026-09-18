@@ -48,8 +48,8 @@ export default function CartPage() {
     try {
       setAuthMessage('');
       setError('');
-      const res = await apiRequest<{ cart: CartItem[] }>('/cart');
-      setCart(res.cart || []);
+      const res = await apiRequest<{ items: CartItem[] }>('/cart');
+      setCart(res.items || []);
     } catch (err) {
       if (isAuthError(err)) {
         setAuthMessage(getAuthMessage(err));

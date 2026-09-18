@@ -28,6 +28,7 @@ export default function Products() {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [productCount, setProductCount] = useState<number | null>(null);
+  const [searchCount, setSearchCount] = useState<number | null>(null);
   const [categoryCounts, setCategoryCounts] = useState<
     Record<Category, number>
   >({
@@ -82,13 +83,14 @@ export default function Products() {
         const res = await apiRequest<{
           products: Product[];
           count: number;
+          search_count: number | null;
           category_counts: Record<Category, number>;
           has_next: boolean;
           has_prev: boolean;
         }>(url);
-        console.log(res);
         setProducts(res.products ?? []);
         setProductCount(res.count ?? null);
+        setSearchCount(res.search_count ?? null);
         setCategoryCounts(
           res.category_counts ?? {
             mobile: 0,
@@ -176,7 +178,11 @@ export default function Products() {
           ? `${productCount} products available`
           : 'Product count unavailable'}
       </p>
-
+      {searchCount !== null && (
+        <p style={{ textAlign: 'center', marginTop: '-4px' }}>
+          <b>search matches: {searchCount}</b>
+        </p>
+      )}
       <div style={{ marginBottom: '15px', textAlign: 'center' }}>
         <input
           type="text"
@@ -193,7 +199,6 @@ export default function Products() {
             borderRadius: '20px',
           }}
         />
-
         <button
           onClick={handleSearch}
           style={{

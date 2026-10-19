@@ -61,7 +61,6 @@ export async function apiRequest<T>(
       method,
       data: body,
     });
-
     return (response.data?.data ?? response.data) as T;
   } catch (error) {
     if (error instanceof ApiError) {

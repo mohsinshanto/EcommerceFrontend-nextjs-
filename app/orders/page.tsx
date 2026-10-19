@@ -27,7 +27,7 @@ type Order = {
   created_at: string;
 };
 
-function formatPublicOrderNumber(order: Order) {
+function formatPublicOrderNumber(order: Order): string {
   const createdAt = new Date(order.created_at);
 
   if (Number.isNaN(createdAt.getTime())) {
@@ -124,17 +124,22 @@ export default function Orders() {
                 <strong>Order Number:</strong> {formatPublicOrderNumber(order)}
               </p>
               <p>
-                <strong>Customer:</strong> {order.customer_name}
+                <strong>Date:</strong>{' '}
+                {new Date(order.created_at).toLocaleDateString()}
               </p>
               <p>
-                <strong>Phone:</strong> {order.phone}
+                <strong>Total:</strong> {order.total_price.toFixed(2)} BDT
               </p>
-              <p>
-                <strong>Payment:</strong> {order.payment_method}
-              </p>
-              <p>
-                <strong>Payment Status:</strong> {order.payment_status}
-              </p>
+              {order.payment_method === 'cod' && (
+                <p>
+                  <strong>Payment Method:</strong> Cash On Delivery
+                </p>
+              )}
+              {order.payment_method === 'sslcommerz' && (
+                <p>
+                  <strong>Payment Method:</strong> SSL Commerz
+                </p>
+              )}
               <p>
                 <strong>Status:</strong> {order.status}
               </p>
@@ -143,23 +148,7 @@ export default function Orders() {
                   <strong>Transaction ID:</strong> {order.transaction_id}
                 </p>
               )}
-              <p>
-                <strong>Total:</strong> {order.total_price.toFixed(2)} BDT
-              </p>
-              <p>
-                <strong>Delivery Address:</strong> {order.address_line},{' '}
-                {order.area}, {order.city}
-                {order.postal_code ? `, ${order.postal_code}` : ''}
-              </p>
-              {order.notes && (
-                <p>
-                  <strong>Notes:</strong> {order.notes}
-                </p>
-              )}
-              <p>
-                <strong>Date:</strong>{' '}
-                {new Date(order.created_at).toLocaleDateString()}
-              </p>
+
               <button
                 onClick={() => archiveOrder(order.id)}
                 disabled={archivingOrderId === order.id}

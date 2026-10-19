@@ -54,6 +54,10 @@ export default function Products() {
   // filters
   const [search, setSearch] = useState('');
   const [appliedSearch, setAppliedSearch] = useState(''); // ✅ only used for API
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [appliedMinPrice, setAppliedMinPrice] = useState('');
+  const [appliedMaxPrice, setAppliedMaxPrice] = useState('');
   const [category, setCategory] = useState('');
   const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
@@ -77,6 +81,14 @@ export default function Products() {
 
         if (category) {
           params.set('category', category);
+        }
+
+        if (appliedMinPrice) {
+          params.set('min_price', appliedMinPrice);
+        }
+
+        if (appliedMaxPrice) {
+          params.set('max_price', appliedMaxPrice);
         }
         const url = `/products?${params.toString()}`;
 
@@ -115,11 +127,28 @@ export default function Products() {
     };
 
     fetchProducts();
-  }, [appliedSearch, category, page]);
+  }, [appliedSearch, appliedMaxPrice, appliedMinPrice, category, page]);
 
   const handleSearch = () => {
+    setError('');
     setPage(1);
     setAppliedSearch(search); // ✅ trigger API
+  };
+
+  const handlePriceFilter = () => {
+    if (
+      minPrice &&
+      maxPrice &&
+      Number.parseFloat(minPrice) > Number.parseFloat(maxPrice)
+    ) {
+      setError('Minimum price cannot be greater than maximum price.');
+      return;
+    }
+
+    setError('');
+    setPage(1);
+    setAppliedMinPrice(minPrice);
+    setAppliedMaxPrice(maxPrice);
   };
 
   const addToCart = async (productId: number) => {
@@ -211,6 +240,56 @@ export default function Products() {
           }}
         >
           Search
+        </button>
+      </div>
+
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '10px',
+          flexWrap: 'wrap',
+          marginBottom: '15px',
+        }}
+      >
+        <span>Price range</span>
+        <input
+          type="number"
+          min="0"
+          placeholder="Min price"
+          value={minPrice}
+          onChange={(e) => setMinPrice(e.target.value)}
+          style={{
+            padding: '10px 12px',
+            width: '110px',
+            borderRadius: '20px',
+          }}
+        />
+        <input
+          type="number"
+          min="0"
+          placeholder="Max price"
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(e.target.value)}
+          style={{
+            padding: '10px 12px',
+            width: '110px',
+            borderRadius: '20px',
+          }}
+        />
+        <button
+          onClick={handlePriceFilter}
+          style={{
+            padding: '10px 20px',
+            cursor: 'pointer',
+            background: '#3665f3',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '20px',
+          }}
+        >
+          Apply filter
         </button>
       </div>
 

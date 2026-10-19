@@ -68,8 +68,8 @@ export default function CheckoutPage() {
       try {
         setAuthMessage('');
         setError('');
-        const res = await apiRequest<{ items: CartItem[] }>('/cart');
-        setCart(res.items || []);
+        const res = await apiRequest<{ cartItems: CartItem[] }>('/cart');
+        setCart(res.cartItems || []);
       } catch (err) {
         if (isAuthError(err)) {
           setAuthMessage(getAuthMessage(err));
@@ -120,14 +120,13 @@ export default function CheckoutPage() {
     try {
       setSubmitting(true);
       const response = await apiRequest<{
-        gateway_url?: string;
+        payment_url?: string;
       }>('/order', 'POST', {
         ...form,
         payment_method: paymentMethod,
       });
-
-      if (paymentMethod === 'sslcommerz' && response.gateway_url) {
-        window.location.href = response.gateway_url;
+      if (paymentMethod === 'sslcommerz' && response.payment_url) {
+        window.location.href = response.payment_url;
         return;
       }
 

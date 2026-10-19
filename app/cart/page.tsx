@@ -38,7 +38,12 @@ export default function CartPage() {
         quantity,
       });
 
-      await fetchCart();
+      //await fetchCart();
+      setCart((prevCart) =>
+        prevCart.map((item) =>
+          item.id === cartId ? { ...item, quantity } : item
+        )
+      );
     } catch (err) {
       setError(getErrorMessage(err, 'Failed to update quantity'));
     }
@@ -48,8 +53,8 @@ export default function CartPage() {
     try {
       setAuthMessage('');
       setError('');
-      const res = await apiRequest<{ items: CartItem[] }>('/cart');
-      setCart(res.items || []);
+      const res = await apiRequest<{ cartItems: CartItem[] }>('/cart');
+      setCart(res.cartItems || []);
     } catch (err) {
       if (isAuthError(err)) {
         setAuthMessage(getAuthMessage(err));
@@ -71,8 +76,9 @@ export default function CartPage() {
       setError('');
       setActionMessage('');
       await apiRequest(`/cart/${id}`, 'DELETE');
+      setCart((prevCart) => prevCart.filter((item) => item.id !== id));
       setActionMessage('Item removed from cart.');
-      await fetchCart();
+      // await fetchCart();
     } catch (err) {
       setError(getErrorMessage(err, 'Failed to remove item'));
     }

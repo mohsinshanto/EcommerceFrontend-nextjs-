@@ -138,9 +138,6 @@ export default function Products() {
         const res = await apiRequest<Category[]>('/categories');
 
         setCategories(res);
-
-        // Expand root categories initially
-        setExpandedCategories(res.map((cat) => cat.id));
       } catch (err) {
         console.error('Failed to load categories:', err);
       }

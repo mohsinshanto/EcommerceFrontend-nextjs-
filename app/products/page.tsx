@@ -136,7 +136,6 @@ export default function Products() {
     const fetchCategories = async () => {
       try {
         const res = await apiRequest<Category[]>('/categories');
-
         setCategories(res);
       } catch (err) {
         console.error('Failed to load categories:', err);
